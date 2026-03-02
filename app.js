@@ -2,22 +2,23 @@
 // CONFIG
 // ======================
 const API_URL = "https://script.google.com/macros/s/AKfycbyh8-4LXWB1op0TJw90hvdvGSjawvTLTyFnlpA0jsHHTc_j3Db4VnH-CwtFqsv5tmib/exec";
-const MAIN_JSON = "./data.json";
-const DV_JSON = "./data-dv.json";
 
-const EXPECTED_PW = "recquignies"; // comparaison locale (insensible à la casse)
+const MAIN_JSON = "./data.json";
+const DV_JSON   = "./data-dv.json";
+
+const EXPECTED_PW = "recquignies"; // comparaison locale
 
 // ======================
 // DOM
 // ======================
 const tbodyMain = document.getElementById("tbody-main");
-const tbodyDv = document.getElementById("tbody-dv");
+const tbodyDv   = document.getElementById("tbody-dv");
 
-const statusEl = document.getElementById("status");
+const statusEl      = document.getElementById("status");
 const passwordInput = document.getElementById("passwordInput");
-const unlockBtn = document.getElementById("unlockBtn");
-const authStatus = document.getElementById("authStatus");
-const modeChip = document.getElementById("modeChip");
+const unlockBtn     = document.getElementById("unlockBtn");
+const authStatus    = document.getElementById("authStatus");
+const modeChip      = document.getElementById("modeChip");
 
 // ======================
 // STATE
@@ -26,23 +27,11 @@ let isWriteEnabled = false;
 let currentPassword = "";
 
 // ======================
-// DIAGNOSTIC UI
+// UI
 // ======================
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg;
   statusEl.style.color = isError ? "crimson" : "inherit";
-}
-
-function diag(msg) {
-  // écrit dans status (append)
-  statusEl.innerHTML += `<div style="margin-top:6px;">• ${escapeHtml(msg)}</div>`;
-}
-
-function escapeHtml(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
 }
 
 function updateCheckboxState() {
@@ -54,9 +43,8 @@ function updateCheckboxState() {
 // ======================
 // AUTH
 // ======================
-unlockBtn.addEventListener("click", async () => {
+unlockBtn.addEventListener("click", () => {
   const pw = (passwordInput.value || "").trim();
-  diag(`Mot de passe saisi: "${pw}" (len=${pw.length})`);
 
   if (!pw) {
     authStatus.textContent = "Entre un mot de passe";
@@ -65,7 +53,6 @@ unlockBtn.addEventListener("click", async () => {
 
   if (pw.toLowerCase() !== EXPECTED_PW) {
     authStatus.textContent = "Mot de passe incorrect";
-    diag(`Comparaison locale KO: "${pw.toLowerCase()}" !== "${EXPECTED_PW}"`);
     return;
   }
 
@@ -74,47 +61,38 @@ unlockBtn.addEventListener("click", async () => {
 
   authStatus.textContent = "Écriture activée";
   if (modeChip) modeChip.textContent = "Écriture";
-  updateCheckboxState();
 
-  // test immédiat write "à blanc" sur une ligne fake (ne doit pas créer si id vide)
-  diag("Mode écriture activé ✅");
+  updateCheckboxState();
 });
 
 // ======================
-// FETCH DEBUG (anti-cache)
+// FETCH HELPERS
 // ======================
-async function fetchTextWithMeta(url, opts = {}) {
-  const u = new URL(url);
-  u.searchParams.set("_ts", Date.now().toString());
-
-  const finalUrl = u.toString();
-  diag(`FETCH → ${finalUrl}`);
-
-  let res;
-  try {
-    res = await fetch(finalUrl, { cache: "no-store", redirect: "follow", ...opts });
-  } catch (e) {
-    throw new Error(`fetch() a échoué (réseau/CORS) → ${e.message}`);
-  }
-
-  const text = await res.text();
-  diag(`HTTP ${res.status} (${res.ok ? "OK" : "NOT OK"}) • ${text.slice(0, 80).replaceAll("\n", " ")}...`);
-
-  return { res, text, finalUrl };
+async function fetchLocalJson(path) {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Erreur chargement ${path} (HTTP ${res.status})`);
+  return res.json();
 }
 
-async function fetchJsonDebug(url, label) {
-  const { res, text, finalUrl } = await fetchTextWithMeta(url, { method: "GET" });
+async function fetchApi(url) {
+  const finalUrl = `${url}${url.includes("?") ? "&" : "?"}_ts=${Date.now()}`;
+
+  const res = await fetch(finalUrl, {
+    method: "GET",
+    cache: "no-store"
+  });
+
+  const text = await res.text();
 
   if (!res.ok) {
-    throw new Error(`${label}: HTTP ${res.status} sur ${finalUrl}`);
+    throw new Error(`API HTTP ${res.status}`);
   }
 
   let json;
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error(`${label}: réponse non JSON sur ${finalUrl} (début="${text.slice(0, 120)}")`);
+    throw new Error("API réponse non JSON");
   }
 
   return json;
@@ -124,26 +102,27 @@ async function fetchJsonDebug(url, label) {
 // API
 // ======================
 async function apiReadState() {
-  const json = await fetchJsonDebug(`${API_URL}?action=read`, "API read");
-  if (!json.ok) throw new Error(`API read: ${json.error || "ok=false"}`);
+  const json = await fetchApi(`${API_URL}?action=read`);
+  if (!json.ok) throw new Error(json.error || "Erreur read");
   return json.data || {};
 }
 
 async function apiWriteCell({ id, column, value }) {
-  const u = new URL(API_URL);
-  u.searchParams.set("action", "write");
-  u.searchParams.set("id", id);
-  u.searchParams.set("column", column);
-  u.searchParams.set("value", value ? "true" : "false");
-  u.searchParams.set("password", currentPassword);
+  const url =
+    `${API_URL}?action=write` +
+    `&id=${encodeURIComponent(id)}` +
+    `&column=${encodeURIComponent(column)}` +
+    `&value=${value ? "true" : "false"}` +
+    `&password=${encodeURIComponent(currentPassword)}`;
 
-  const json = await fetchJsonDebug(u.toString(), `API write ${id} ${column}`);
-  if (!json.ok) throw new Error(`API write: ${json.error || "ok=false"}`);
+  const json = await fetchApi(url);
+  if (!json.ok) throw new Error(json.error || "Erreur write");
+
   return true;
 }
 
 // ======================
-// CHECKBOX
+// CHECKBOX FACTORY
 // ======================
 function createCheckbox({ id, column, checked }) {
   const input = document.createElement("input");
@@ -153,23 +132,18 @@ function createCheckbox({ id, column, checked }) {
   input.disabled = !isWriteEnabled;
 
   input.addEventListener("change", async () => {
-    if (!isWriteEnabled) {
-      diag("Click ignoré: mode lecture seule");
-      return;
-    }
+    if (!isWriteEnabled) return;
 
     const newValue = input.checked;
     const previousValue = !newValue;
 
     try {
       setStatus("Sauvegarde…");
-      diag(`WRITE demandé: id=${id} col=${column} val=${newValue}`);
       await apiWriteCell({ id, column, value: newValue });
       setStatus("Enregistré ✅");
     } catch (err) {
       input.checked = previousValue;
       setStatus("Erreur : " + err.message, true);
-      diag("ERREUR write: " + err.message);
     }
   });
 
@@ -177,10 +151,10 @@ function createCheckbox({ id, column, checked }) {
 }
 
 // ======================
-// RENDER
+// RENDER PRINCIPAL
 // ======================
-function renderTableMain({ tbody, rows, state }) {
-  tbody.innerHTML = "";
+function renderTableMain({ rows, state }) {
+  tbodyMain.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
   for (const row of rows) {
@@ -192,21 +166,33 @@ function renderTableMain({ tbody, rows, state }) {
 
     const tdA = document.createElement("td");
     tdA.className = "center";
-    tdA.appendChild(createCheckbox({ id: row.id, column: "A", checked: state[row.id]?.A }));
+    tdA.appendChild(createCheckbox({
+      id: row.id,
+      column: "A",
+      checked: state[row.id]?.A
+    }));
     tr.appendChild(tdA);
 
     const tdB = document.createElement("td");
     tdB.className = "center";
-    tdB.appendChild(createCheckbox({ id: row.id, column: "B", checked: state[row.id]?.B }));
+    tdB.appendChild(createCheckbox({
+      id: row.id,
+      column: "B",
+      checked: state[row.id]?.B
+    }));
     tr.appendChild(tdB);
 
     fragment.appendChild(tr);
   }
-  tbody.appendChild(fragment);
+
+  tbodyMain.appendChild(fragment);
 }
 
-function renderTableDv({ tbody, rows, state }) {
-  tbody.innerHTML = "";
+// ======================
+// RENDER DEUX-VOIX
+// ======================
+function renderTableDv({ rows, state }) {
+  tbodyDv.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
   for (const row of rows) {
@@ -218,12 +204,17 @@ function renderTableDv({ tbody, rows, state }) {
 
     const tdOne = document.createElement("td");
     tdOne.className = "center";
-    tdOne.appendChild(createCheckbox({ id: row.id, column: "A", checked: state[row.id]?.A }));
+    tdOne.appendChild(createCheckbox({
+      id: row.id,
+      column: "A",
+      checked: state[row.id]?.A
+    }));
     tr.appendChild(tdOne);
 
     fragment.appendChild(tr);
   }
-  tbody.appendChild(fragment);
+
+  tbodyDv.appendChild(fragment);
 }
 
 // ======================
@@ -231,28 +222,28 @@ function renderTableDv({ tbody, rows, state }) {
 // ======================
 async function init() {
   try {
-    setStatus("DIAGNOSTIC: démarrage…");
+    setStatus("Chargement…");
 
     if (modeChip) modeChip.textContent = "Lecture";
 
-    // 1) JSON locaux
-    const mainRows = await fetchJsonDebug(MAIN_JSON, "data.json");
-    const dvRows = await fetchJsonDebug(DV_JSON, "data-dv.json");
-    if (!Array.isArray(mainRows)) throw new Error("data.json doit être un tableau []");
-    if (!Array.isArray(dvRows)) throw new Error("data-dv.json doit être un tableau []");
+    const [mainRows, dvRows] = await Promise.all([
+      fetchLocalJson(MAIN_JSON),
+      fetchLocalJson(DV_JSON)
+    ]);
 
-    // 2) API read
+    if (!Array.isArray(mainRows)) throw new Error("data.json invalide");
+    if (!Array.isArray(dvRows)) throw new Error("data-dv.json invalide");
+
     const state = await apiReadState();
 
-    renderTableMain({ tbody: tbodyMain, rows: mainRows, state });
-    renderTableDv({ tbody: tbodyDv, rows: dvRows, state });
+    renderTableMain({ rows: mainRows, state });
+    renderTableDv({ rows: dvRows, state });
 
     updateCheckboxState();
-    setStatus("DIAGNOSTIC: prêt. Clique une checkbox et lis les logs ci-dessous.");
+    setStatus("Prêt.");
   } catch (err) {
-    setStatus("DIAGNOSTIC: ERREUR → " + err.message, true);
+    setStatus("Erreur : " + err.message, true);
   }
 }
 
 init();
-
