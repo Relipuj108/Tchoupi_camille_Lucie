@@ -2,9 +2,10 @@
 // CONFIG
 // ======================
 const API_URL = "https://script.google.com/macros/s/AKfycby2NwNGz43queQJHO_zil-rkTIRi_R-NXvsjOULpqHInSLay6R2AAx44sCrXkd0ElW8/exec";
-
 const MAIN_JSON = "./data.json";
-const DV_JSON   = "./data-dv.json";
+const DV_JSON = "./data-dv.json";
+
+const EXPECTED_PW = "recquignies"; // comparaison locale (insensible à la casse)
 
 // ======================
 // DOM
@@ -25,11 +26,23 @@ let isWriteEnabled = false;
 let currentPassword = "";
 
 // ======================
-// UI
+// DIAGNOSTIC UI
 // ======================
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg;
   statusEl.style.color = isError ? "crimson" : "inherit";
+}
+
+function diag(msg) {
+  // écrit dans status (append)
+  statusEl.innerHTML += `<div style="margin-top:6px;">• ${escapeHtml(msg)}</div>`;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function updateCheckboxState() {
@@ -41,52 +54,67 @@ function updateCheckboxState() {
 // ======================
 // AUTH
 // ======================
-unlockBtn.addEventListener("click", () => {
-  const pw = passwordInput.value.trim();
+unlockBtn.addEventListener("click", async () => {
+  const pw = (passwordInput.value || "").trim();
+  diag(`Mot de passe saisi: "${pw}" (len=${pw.length})`);
 
   if (!pw) {
     authStatus.textContent = "Entre un mot de passe";
     return;
   }
 
-  if (pw.toLowerCase() !== "recquignies") {
+  if (pw.toLowerCase() !== EXPECTED_PW) {
     authStatus.textContent = "Mot de passe incorrect";
+    diag(`Comparaison locale KO: "${pw.toLowerCase()}" !== "${EXPECTED_PW}"`);
     return;
   }
 
-  currentPassword = pw;     // envoyé au backend (backend case-insensitive)
+  currentPassword = pw;
   isWriteEnabled = true;
 
   authStatus.textContent = "Écriture activée";
   if (modeChip) modeChip.textContent = "Écriture";
-
   updateCheckboxState();
+
+  // test immédiat write "à blanc" sur une ligne fake (ne doit pas créer si id vide)
+  diag("Mode écriture activé ✅");
 });
 
 // ======================
-// FETCH UTIL (anti-cache)
+// FETCH DEBUG (anti-cache)
 // ======================
-async function fetchJson(url) {
+async function fetchTextWithMeta(url, opts = {}) {
   const u = new URL(url);
   u.searchParams.set("_ts", Date.now().toString());
 
-  const res = await fetch(u.toString(), {
-    method: "GET",
-    cache: "no-store",
-    redirect: "follow"
-  });
+  const finalUrl = u.toString();
+  diag(`FETCH → ${finalUrl}`);
+
+  let res;
+  try {
+    res = await fetch(finalUrl, { cache: "no-store", redirect: "follow", ...opts });
+  } catch (e) {
+    throw new Error(`fetch() a échoué (réseau/CORS) → ${e.message}`);
+  }
 
   const text = await res.text();
+  diag(`HTTP ${res.status} (${res.ok ? "OK" : "NOT OK"}) • ${text.slice(0, 80).replaceAll("\n", " ")}...`);
+
+  return { res, text, finalUrl };
+}
+
+async function fetchJsonDebug(url, label) {
+  const { res, text, finalUrl } = await fetchTextWithMeta(url, { method: "GET" });
+
+  if (!res.ok) {
+    throw new Error(`${label}: HTTP ${res.status} sur ${finalUrl}`);
+  }
 
   let json;
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error("Réponse non JSON");
-  }
-
-  if (!res.ok) {
-    throw new Error("HTTP " + res.status);
+    throw new Error(`${label}: réponse non JSON sur ${finalUrl} (début="${text.slice(0, 120)}")`);
   }
 
   return json;
@@ -96,28 +124,26 @@ async function fetchJson(url) {
 // API
 // ======================
 async function apiReadState() {
-  const json = await fetchJson(`${API_URL}?action=read`);
-  if (!json.ok) throw new Error(json.error || "Erreur read");
+  const json = await fetchJsonDebug(`${API_URL}?action=read`, "API read");
+  if (!json.ok) throw new Error(`API read: ${json.error || "ok=false"}`);
   return json.data || {};
 }
 
 async function apiWriteCell({ id, column, value }) {
   const u = new URL(API_URL);
-
   u.searchParams.set("action", "write");
   u.searchParams.set("id", id);
   u.searchParams.set("column", column);
   u.searchParams.set("value", value ? "true" : "false");
   u.searchParams.set("password", currentPassword);
 
-  const json = await fetchJson(u.toString());
-  if (!json.ok) throw new Error(json.error || "Erreur write");
-
+  const json = await fetchJsonDebug(u.toString(), `API write ${id} ${column}`);
+  if (!json.ok) throw new Error(`API write: ${json.error || "ok=false"}`);
   return true;
 }
 
 // ======================
-// CHECKBOX FACTORY
+// CHECKBOX
 // ======================
 function createCheckbox({ id, column, checked }) {
   const input = document.createElement("input");
@@ -127,18 +153,23 @@ function createCheckbox({ id, column, checked }) {
   input.disabled = !isWriteEnabled;
 
   input.addEventListener("change", async () => {
-    if (!isWriteEnabled) return;
+    if (!isWriteEnabled) {
+      diag("Click ignoré: mode lecture seule");
+      return;
+    }
 
     const newValue = input.checked;
     const previousValue = !newValue;
 
     try {
       setStatus("Sauvegarde…");
+      diag(`WRITE demandé: id=${id} col=${column} val=${newValue}`);
       await apiWriteCell({ id, column, value: newValue });
       setStatus("Enregistré ✅");
     } catch (err) {
       input.checked = previousValue;
       setStatus("Erreur : " + err.message, true);
+      diag("ERREUR write: " + err.message);
     }
   });
 
@@ -146,7 +177,7 @@ function createCheckbox({ id, column, checked }) {
 }
 
 // ======================
-// RENDER PRINCIPAL (A + B)
+// RENDER
 // ======================
 function renderTableMain({ tbody, rows, state }) {
   tbody.innerHTML = "";
@@ -161,31 +192,19 @@ function renderTableMain({ tbody, rows, state }) {
 
     const tdA = document.createElement("td");
     tdA.className = "center";
-    tdA.appendChild(createCheckbox({
-      id: row.id,
-      column: "A",
-      checked: state[row.id]?.A
-    }));
+    tdA.appendChild(createCheckbox({ id: row.id, column: "A", checked: state[row.id]?.A }));
     tr.appendChild(tdA);
 
     const tdB = document.createElement("td");
     tdB.className = "center";
-    tdB.appendChild(createCheckbox({
-      id: row.id,
-      column: "B",
-      checked: state[row.id]?.B
-    }));
+    tdB.appendChild(createCheckbox({ id: row.id, column: "B", checked: state[row.id]?.B }));
     tr.appendChild(tdB);
 
     fragment.appendChild(tr);
   }
-
   tbody.appendChild(fragment);
 }
 
-// ======================
-// RENDER DEUX-VOIX (A only)
-// ======================
 function renderTableDv({ tbody, rows, state }) {
   tbody.innerHTML = "";
   const fragment = document.createDocumentFragment();
@@ -199,16 +218,11 @@ function renderTableDv({ tbody, rows, state }) {
 
     const tdOne = document.createElement("td");
     tdOne.className = "center";
-    tdOne.appendChild(createCheckbox({
-      id: row.id,       // dv-row-xxx
-      column: "A",      // ✅ une seule colonne
-      checked: state[row.id]?.A
-    }));
+    tdOne.appendChild(createCheckbox({ id: row.id, column: "A", checked: state[row.id]?.A }));
     tr.appendChild(tdOne);
 
     fragment.appendChild(tr);
   }
-
   tbody.appendChild(fragment);
 }
 
@@ -217,34 +231,27 @@ function renderTableDv({ tbody, rows, state }) {
 // ======================
 async function init() {
   try {
-    setStatus("Chargement…");
+    setStatus("DIAGNOSTIC: démarrage…");
 
     if (modeChip) modeChip.textContent = "Lecture";
 
-    const [mainRes, dvRes] = await Promise.all([
-      fetch(MAIN_JSON, { cache: "no-store" }),
-      fetch(DV_JSON, { cache: "no-store" })
-    ]);
+    // 1) JSON locaux
+    const mainRows = await fetchJsonDebug(MAIN_JSON, "data.json");
+    const dvRows = await fetchJsonDebug(DV_JSON, "data-dv.json");
+    if (!Array.isArray(mainRows)) throw new Error("data.json doit être un tableau []");
+    if (!Array.isArray(dvRows)) throw new Error("data-dv.json doit être un tableau []");
 
-    const [mainRows, dvRows] = await Promise.all([
-      mainRes.json(),
-      dvRes.json()
-    ]);
-
+    // 2) API read
     const state = await apiReadState();
 
     renderTableMain({ tbody: tbodyMain, rows: mainRows, state });
     renderTableDv({ tbody: tbodyDv, rows: dvRows, state });
 
     updateCheckboxState();
-    setStatus("Prêt.");
+    setStatus("DIAGNOSTIC: prêt. Clique une checkbox et lis les logs ci-dessous.");
   } catch (err) {
-    setStatus("Erreur : " + err.message, true);
+    setStatus("DIAGNOSTIC: ERREUR → " + err.message, true);
   }
 }
 
 init();
-
-
-
-
