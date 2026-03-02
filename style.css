@@ -1,0 +1,467 @@
+:root{
+  /* couleurs marquées (inchangé) */
+  --blue: #0b5ed7;
+  --blue2: #1e88ff;
+  --green: #16a34a;
+  --green2: #22c55e;
+  --yellow: #facc15;
+  --orange: #f59e0b;
+
+  --ink: #10203a;
+  --muted: #415a77;
+
+  --card: #ffffff;
+  --border: rgba(16,32,58,0.14);
+  --shadow: 0 10px 22px rgba(16,32,58,0.16);
+  --shadow2: 0 6px 14px rgba(16,32,58,0.16);
+
+  --radius: 18px;
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--ink);
+
+  background:
+    radial-gradient(circle at 12% 10%, rgba(30,136,255,0.35), transparent 40%),
+    radial-gradient(circle at 90% 18%, rgba(34,197,94,0.35), transparent 40%),
+    radial-gradient(circle at 20% 92%, rgba(250,204,21,0.30), transparent 45%),
+    #f3f6ff;
+}
+
+/* =========================
+   LAYOUT (plus compact)
+   ========================= */
+.container{
+  max-width: 980px;
+  margin: 16px auto 44px;
+  padding: 0 14px;
+}
+
+.card{
+  background: var(--card);
+  border: 2px solid rgba(16,32,58,0.10);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  padding: 12px;            /* plus compact */
+  margin-top: 12px;         /* plus compact */
+}
+
+.card-table{
+  padding: 10px;            /* encore un peu plus compact pour les tableaux */
+}
+
+.card-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 8px;       /* plus compact */
+}
+
+.h1{
+  margin:0;
+  font-size: 18px;          /* plus compact */
+  font-weight: 1000;
+}
+
+.muted{
+  color: var(--muted);
+  font-size: 12.5px;        /* plus compact */
+  font-weight: 750;
+  margin-top: 2px;
+}
+
+/* =========================
+   TOPBAR (compact)
+   ========================= */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(16,32,58,0.10);
+}
+
+.topbar-inner{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px 14px;       /* plus compact */
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+.badge{
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display:grid;
+  place-items:center;
+  font-weight: 1000;
+  color:#fff;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  box-shadow: var(--shadow2);
+}
+
+.brand-title{
+  font-size: 15.5px;        /* plus compact */
+  font-weight: 1000;
+  letter-spacing: 0.2px;
+}
+.brand-sub{
+  font-size: 11.5px;        /* plus compact */
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 6px 10px;        /* compact */
+  border-radius: 999px;
+  border: 2px solid rgba(16,32,58,0.12);
+  background: #fff;
+  box-shadow: 0 6px 12px rgba(16,32,58,0.10);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 850;
+}
+.chip-dot{
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--yellow);
+  box-shadow: 0 0 0 4px rgba(250,204,21,0.35);
+}
+
+.tchoupi-icon{
+  height: 52px;             /* un peu plus compact */
+  width: 36px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 2px solid rgba(16,32,58,0.10);
+  box-shadow: 0 10px 16px rgba(16,32,58,0.18);
+}
+
+/* =========================
+   AUTH (compact)
+   ========================= */
+.auth-row{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap: 10px;
+}
+
+.auth-field{ min-width: 160px; }
+
+.label{
+  display:block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  font-weight: 900;
+}
+
+.input{
+  width: 200px;
+  max-width: 100%;
+  padding: 8px 10px;        /* compact */
+  border-radius: 14px;
+  border: 2px solid rgba(16,32,58,0.18);
+  background: #fff;
+  outline: none;
+  font-size: 13px;
+  font-weight: 850;
+}
+.input:focus{
+  border-color: rgba(30,136,255,0.85);
+  box-shadow: 0 0 0 5px rgba(30,136,255,0.25);
+}
+
+.btn{
+  border:none;
+  cursor:pointer;
+  padding: 8px 12px;        /* compact */
+  border-radius: 14px;
+  font-weight: 1000;
+  color:#fff;
+  background: linear-gradient(135deg, var(--blue), var(--blue2));
+  box-shadow: 0 10px 18px rgba(30,136,255,0.22);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+.btn:active{ transform: translateY(0); filter: brightness(0.98); }
+
+.authStatus{
+  font-weight: 1000;
+  padding: 6px 10px;        /* compact */
+  border-radius: 999px;
+  border: 2px dashed rgba(16,32,58,0.22);
+  background: rgba(250,204,21,0.28);
+  color: rgba(16,32,58,0.92);
+  font-size: 12px;
+}
+
+.statusbar{
+  margin-top: 10px;
+  padding: 8px 10px;        /* compact */
+  border-radius: 14px;
+  background: rgba(34,197,94,0.18);
+  border: 2px solid rgba(34,197,94,0.30);
+  color: rgba(16,32,58,0.95);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+/* =========================
+   SECTION TITLES (compact)
+   ========================= */
+.section-title{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 6px 10px;        /* compact */
+  border-radius: 999px;
+  border: 2px solid rgba(16,32,58,0.12);
+  background: #fff;
+  font-weight: 1000;
+  font-size: 12px;
+  color: rgba(16,32,58,0.88);
+  box-shadow: 0 8px 12px rgba(16,32,58,0.10);
+}
+.pill-main{ border-color: rgba(30,136,255,0.35); }
+.pill-dv{ border-color: rgba(34,197,94,0.35); }
+
+/* =========================
+   TABLES (DENSE)
+   ========================= */
+.table-wrap{
+  overflow: hidden;         /* pas de scroll horizontal par défaut */
+  border-radius: 14px;
+  border: 2px solid rgba(16,32,58,0.10);
+}
+
+.tch-table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;      /* clé pour les colonnes fixes */
+  background: #fff;
+}
+
+.tch-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align:left;
+  font-size: 11px;          /* demandé */
+  font-weight: 1000;
+  color: rgba(16,32,58,0.95);
+  padding: 6px 6px;         /* compact */
+  background: linear-gradient(90deg, rgba(30,136,255,0.30), rgba(34,197,94,0.22));
+  border-bottom: 2px solid rgba(16,32,58,0.10);
+}
+
+.tch-table tbody td{
+  font-size: 11px;          /* demandé */
+  padding: 6px 6px;         /* compact */
+  border-bottom: 1px solid rgba(16,32,58,0.10);
+  font-weight: 750;
+  line-height: 1.15;        /* compact */
+}
+
+/* zebra + hover (conservé) */
+.tch-table tbody tr:nth-child(odd) td{
+  background: rgba(30,136,255,0.08);
+}
+.tch-table tbody tr:hover td{
+  background: rgba(250,204,21,0.20);
+}
+
+.th-center{ text-align:center; }
+
+/* Colonnes: titre flexible (desktop), check compact */
+.col-title{ width: auto; }
+.col-check{ width: 70px; }  /* desktop: compact mais lisible */
+
+td.center{
+  text-align:center;
+}
+
+/* =========================
+   CHECKBOX (compact, marqué)
+   ========================= */
+input.kid-check{
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;              /* compact */
+  height: 24px;
+  border-radius: 9px;
+  border: 2px solid rgba(255,255,255,0.95);
+
+  background: linear-gradient(145deg, #1e88ff, #0b5ed7);
+  box-shadow:
+    0 3px 0 rgba(9,70,160,1),
+    0 6px 12px rgba(16,32,58,0.22);
+
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.10s ease, box-shadow 0.10s ease, filter 0.10s ease;
+}
+
+input.kid-check:hover{
+  transform: translateY(-1px) scale(1.02);
+  filter: saturate(1.08);
+}
+
+input.kid-check:active{
+  transform: translateY(0) scale(0.99);
+  box-shadow:
+    0 2px 0 rgba(9,70,160,1),
+    0 4px 10px rgba(16,32,58,0.20);
+}
+
+input.kid-check:checked{
+  background: linear-gradient(145deg, #22c55e, #16a34a);
+  box-shadow:
+    0 3px 0 rgba(11,120,54,1),
+    0 6px 12px rgba(16,32,58,0.22);
+}
+
+input.kid-check:checked::after{
+  content: "★";
+  position: absolute;
+  font-size: 12px;
+  color: rgba(255,255,255,0.98);
+  top: 4px;
+  left: 6px;
+  text-shadow: 0 2px 0 rgba(16,32,58,0.25);
+}
+
+input.kid-check:disabled{
+  cursor:not-allowed;
+  opacity: 0.45;
+  filter: grayscale(0.35);
+  box-shadow: none;
+}
+
+/* =========================
+   MOBILE: colonnes fixes 150 / 40 / 40
+   + titres sur 2 lignes
+   ========================= */
+@media (max-width: 600px){
+  .container{ padding: 0 10px; }
+
+  /* 150px pour titre, 40px pour cases */
+  .tch-table thead th.col-title,
+  .tch-table tbody td:first-child{
+    width: 150px !important;
+    max-width: 150px !important;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* principal: 2 colonnes checkbox */
+  .tch-table thead th.col-check,
+  .tch-table tbody td.center{
+    width: 40px !important;
+    max-width: 40px !important;
+    padding: 4px 2px;       /* très compact */
+  }
+
+  /* Deux-voix: 1 colonne checkbox */
+  .dv-table thead th.col-check{
+    width: 40px !important;
+  }
+
+  /* padding encore plus petit sur mobile */
+  .tch-table thead th{ padding: 6px 5px; }
+  .tch-table tbody td{ padding: 6px 5px; }
+
+  /* checkbox un peu plus petite */
+  input.kid-check{
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+  }
+  input.kid-check:checked::after{
+    font-size: 11px;
+    top: 4px;
+    left: 6px;
+  }
+
+  /* topbar compact */
+  .tchoupi-icon{ height: 48px; width: 34px; }
+  .chip{ padding: 6px 8px; }
+}
+/* =========================
+   TH "Nouveau" COMPACT
+   ========================= */
+
+th.th-nouveau{
+  text-align: center;
+  vertical-align: middle;
+  padding: 4px 4px !important;
+  height: 50px;              /* hauteur fixe raisonnable */
+}
+
+.th-nouveau__stack{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+/* texte plus compact */
+.th-nouveau__text{
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* logo petit et contrôlé */
+.th-nouveau__icon{
+  width: 18px;               /* réduit fortement */
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
+/* mobile : icône plus petite, toujours sous le texte */
+@media (max-width: 600px){
+  .th-nouveau__icon{
+    width: 20px;
+    height: 20px;
+  }
+}
+
+

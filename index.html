@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Liste T'choupi Louise</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="badge">T</div>
+        <div class="brand-text">
+          <div class="brand-title">Liste T'choupi Louise</div>
+          <div class="brand-sub">Suivi des livres • Ancien / Nouveau • Deux-voix</div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="chip">
+          <span class="chip-dot"></span>
+          Mode: <b id="modeChip">Lecture</b>
+        </div>
+
+        <img src="tchoupi.jpg" alt="Tchoupi" class="tchoupi-icon">
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h1 class="h1">📚 Suivi de lecture</h1>
+          <div class="muted">
+            Lecture libre. Pour cocher, entre le mot de passe puis valide.
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-row">
+        <div class="auth-field">
+          <label class="label" for="passwordInput">Mot de passe</label>
+          <input type="text" id="passwordInput" class="input" placeholder="Mot de passe" />
+        </div>
+
+        <button id="unlockBtn" class="btn">Valider</button>
+        <span id="authStatus" class="authStatus">Lecture seule</span>
+      </div>
+
+      <div id="status" class="statusbar">Prêt.</div>
+    </section>
+
+    <div class="section-title">
+      <div class="pill pill-main">📗 Principal</div>
+    </div>
+
+<section class="card card-table">
+  <div class="table-wrap">
+    <table class="tch-table">
+      <thead>
+        <tr>
+          <th class="col-title">Livre</th>
+          <th class="th-center col-check">Ancien</th>
+
+          
+          <th class="th-center col-check th-nouveau">
+            <div class="th-nouveau__stack">
+              <span class="th-nouveau__text">Nouveau</span>
+              <img src="logotchoupi.jpg" alt="" class="th-nouveau__icon">
+            </div>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody id="tbody-main"></tbody>
+    </table>
+  </div>
+</section>
+
+    <div class="section-title">
+      <div class="pill pill-dv">🎧 Deux-voix</div>
+    </div>
+
+    <section class="card card-table">
+      <div class="table-wrap">
+        <table class="tch-table dv-table">
+          <thead>
+            <tr>
+              <th class="col-title">Livre</th>
+              <th class="th-center col-check">Deux-voix</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dv"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
+
