@@ -3,8 +3,8 @@
 // ======================
 const API_URL = "https://script.google.com/macros/s/AKfycby2NwNGz43queQJHO_zil-rkTIRi_R-NXvsjOULpqHInSLay6R2AAx44sCrXkd0ElW8/exec";
 
-const MAIN_JSON = "data.json";
-const DV_JSON = "data-dv.json";
+const MAIN_JSON = "./data.json";
+const DV_JSON   = "./data-dv.json";
 
 // ======================
 // DOM
@@ -244,6 +244,7 @@ async function init() {
 }
 
 init();
+
 
 
 
