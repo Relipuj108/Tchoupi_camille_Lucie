@@ -1,7 +1,7 @@
 // ======================
 // CONFIG
 // ======================
-const API_URL = "https://script.google.com/macros/s/AKfycby2NwNGz43queQJHO_zil-rkTIRi_R-NXvsjOULpqHInSLay6R2AAx44sCrXkd0ElW8/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyh8-4LXWB1op0TJw90hvdvGSjawvTLTyFnlpA0jsHHTc_j3Db4VnH-CwtFqsv5tmib/exec";
 const MAIN_JSON = "./data.json";
 const DV_JSON = "./data-dv.json";
 
@@ -255,3 +255,4 @@ async function init() {
 }
 
 init();
+
