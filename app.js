@@ -1,7 +1,7 @@
 // ======================
 // CONFIG
 // ======================
-const API_URL = "https://script.google.com/macros/s/AKfycbwVU23KQANt3bynOT3gvutq8Mp-9gm9PV4Q8vprfTVB9tbcdMJt99t1992M2B92VCeQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyNHQhaYLGfTDxs2B3SB0wbGDV_A1OkidZbRY4KtsdKa-JMle_HYjmYqJTIdRc3t3Op/exec";
 
 const MAIN_JSON = "data.json";
 const DV_JSON = "data-dv.json";
@@ -49,7 +49,7 @@ unlockBtn.addEventListener("click", () => {
     return;
   }
 
-  if (pw.toLowerCase() !== "louise") {
+  if (pw.toLowerCase() !== "Recquignies") {
     authStatus.textContent = "Mot de passe incorrect";
     return;
   }
@@ -244,3 +244,4 @@ async function init() {
 }
 
 init();
+
