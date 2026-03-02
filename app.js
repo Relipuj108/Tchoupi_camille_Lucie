@@ -49,7 +49,7 @@ unlockBtn.addEventListener("click", () => {
     return;
   }
 
-  if (pw.toLowerCase() !== "Recquignies") {
+  if (pw.toLowerCase() !== "recquignies") {
     authStatus.textContent = "Mot de passe incorrect";
     return;
   }
@@ -244,5 +244,6 @@ async function init() {
 }
 
 init();
+
 
 
